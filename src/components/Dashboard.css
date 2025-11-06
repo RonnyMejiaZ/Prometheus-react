@@ -1,0 +1,260 @@
+.dashboard {
+  padding: 24px;
+  min-height: calc(100vh - 64px);
+}
+
+.dashboard-title {
+  font-size: 32px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 24px 0;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.dashboard-grid > .welcome-card {
+  grid-column: span 2;
+}
+
+.dashboard-grid > .metric-card {
+  grid-column: span 1;
+}
+
+.dashboard-grid > .chart-card {
+  grid-column: span 1;
+}
+
+.dashboard-grid > .chart-card:last-of-type {
+  grid-column: span 2;
+}
+
+.dashboard-card {
+  background-color: #1f1f1f;
+  border-radius: 8px;
+  padding: 24px;
+  border: 1px solid #2d2d2d;
+}
+
+.welcome-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.welcome-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: #3b82f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.welcome-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.welcome-content h3 {
+  font-size: 18px;
+  font-weight: 500;
+  color: #ffffff;
+  margin: 0;
+}
+
+.logout-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: 1px solid #3d3d3d;
+  color: #9ca3af;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  width: fit-content;
+}
+
+.logout-button:hover {
+  background-color: #2d2d2d;
+  color: #ffffff;
+  border-color: #4d4d4d;
+}
+
+.metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.metric-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.metric-value {
+  font-size: 36px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1;
+}
+
+.metric-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+}
+
+.metric-description {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.metric-trend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.metric-trend.positive {
+  color: #10b981;
+}
+
+.metric-trend.negative {
+  color: #ef4444;
+}
+
+.trend-line {
+  width: 40px;
+  height: 20px;
+  position: relative;
+}
+
+.trend-line.positive::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(to right, #10b981, transparent);
+  border-radius: 1px;
+}
+
+.trend-line.negative::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(to right, #ef4444, transparent);
+  border-radius: 1px;
+}
+
+.chart-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.chart-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+  margin: 0;
+}
+
+.chart-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 250px;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  color: #9ca3af;
+}
+
+.error-message {
+  background-color: #7f1d1d;
+  color: #fca5a5;
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-bottom: 24px;
+  border: 1px solid #991b1b;
+}
+
+@media (max-width: 1200px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .dashboard-grid > .welcome-card {
+    grid-column: span 2;
+  }
+  
+  .dashboard-grid > .metric-card {
+    grid-column: span 1;
+  }
+  
+  .dashboard-grid > .chart-card {
+    grid-column: span 2;
+  }
+  
+  .dashboard-grid > .chart-card:last-of-type {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 16px;
+  }
+
+  .dashboard-title {
+    font-size: 24px;
+    margin-bottom: 16px;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .dashboard-grid > .welcome-card,
+  .dashboard-grid > .metric-card,
+  .dashboard-grid > .chart-card {
+    grid-column: span 1;
+  }
+
+  .dashboard-card {
+    padding: 16px;
+  }
+
+  .metric-value {
+    font-size: 28px;
+  }
+}
