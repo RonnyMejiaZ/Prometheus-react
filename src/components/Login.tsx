@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { apiService } from '../services/api';
+import { ToggleSwitch } from './shared/ToggleSwitch';
 import './Login.css';
 
 const Login: React.FC = () => {
@@ -123,18 +124,12 @@ const Login: React.FC = () => {
           </div>
 
           <div className="form-group checkbox-group">
-            <input
-              type="checkbox"
-              id="remember"
-              name="remember"
+            <ToggleSwitch
               checked={formData.remember}
-              onChange={handleChange}
-              className="form-checkbox"
+              onChange={(checked) => setFormData({ ...formData, remember: checked })}
+              label="Remember me"
               disabled={loading}
             />
-            <label htmlFor="remember" className="checkbox-label">
-              Remember me
-            </label>
           </div>
 
           <button
