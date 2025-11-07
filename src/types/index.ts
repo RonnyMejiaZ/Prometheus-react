@@ -30,7 +30,6 @@ export interface Inquilino {
   nombre: string;
   email: string;
   telefono: string;
-  direccion: string;
   documento?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -82,7 +81,6 @@ export interface InquilinoFormData {
   nombre: string;
   email: string;
   telefono: string;
-  direccion: string;
   documento?: string;
 }
 

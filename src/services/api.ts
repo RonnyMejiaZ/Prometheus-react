@@ -58,8 +58,16 @@ class ApiService {
   }
 
   async deleteProperty(id: number): Promise<ApiResponse<void>> {
-    const response = await this.api.delete(`/propiedades/${id}`);
-    return response.data;
+    try {
+      const response = await this.api.delete(`/propiedades/${id}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Delete property error:', error);
+      if (error.response?.status === 405) {
+        throw new Error('El método DELETE no está permitido. Verifica que el backend tenga implementado este endpoint.');
+      }
+      throw error;
+    }
   }
 
   // Inquilinos

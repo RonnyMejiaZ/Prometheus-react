@@ -13,7 +13,6 @@ const Inquilinos: React.FC = () => {
     nombre: '',
     email: '',
     telefono: '',
-    direccion: '',
     documento: ''
   });
 
@@ -42,9 +41,19 @@ const Inquilinos: React.FC = () => {
     try {
       setLoading(true);
       if (editingInquilino) {
-        await apiService.updateInquilino(editingInquilino.id, formData);
+        await apiService.updateInquilino(editingInquilino.id, {
+          nombre: formData.nombre,
+          email: formData.email,
+          telefono: formData.telefono,
+          documento: formData.documento
+        });
       } else {
-        await apiService.createInquilino(formData);
+        await apiService.createInquilino({
+          nombre: formData.nombre,
+          email: formData.email,
+          telefono: formData.telefono,
+          documento: formData.documento
+        });
       }
       await loadInquilinos();
       setShowForm(false);
@@ -64,7 +73,6 @@ const Inquilinos: React.FC = () => {
       nombre: inquilino.nombre,
       email: inquilino.email,
       telefono: inquilino.telefono,
-      direccion: inquilino.direccion,
       documento: inquilino.documento || ''
     });
     setShowForm(true);
@@ -90,7 +98,6 @@ const Inquilinos: React.FC = () => {
       nombre: '',
       email: '',
       telefono: '',
-      direccion: '',
       documento: ''
     });
   };
@@ -100,6 +107,8 @@ const Inquilinos: React.FC = () => {
     setEditingInquilino(null);
     resetForm();
   };
+
+
 
   if (loading) {
     return (
@@ -160,15 +169,6 @@ const Inquilinos: React.FC = () => {
                 />
               </div>
               <div className="form-group">
-                <label>Dirección:</label>
-                <input
-                  type="text"
-                  value={formData.direccion}
-                  onChange={(e) => setFormData({...formData, direccion: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="form-group">
                 <label>Documento:</label>
                 <input
                   type="text"
@@ -201,10 +201,7 @@ const Inquilinos: React.FC = () => {
                 <h3>{inquilino.nombre}</h3>
                 <p><strong>Email:</strong> {inquilino.email}</p>
                 <p><strong>Teléfono:</strong> {inquilino.telefono}</p>
-                <p><strong>Dirección:</strong> {inquilino.direccion}</p>
-                {inquilino.documento && (
-                  <p><strong>Documento:</strong> {inquilino.documento}</p>
-                )}
+                <p><strong>Documento:</strong> {inquilino.documento}</p>
               </div>
               <div className="inquilino-actions">
                 <button 

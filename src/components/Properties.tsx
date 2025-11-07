@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { apiService } from '../services/api';
 import { Property, PropertyFormData } from '../types';
 import './Properties.css';
@@ -9,6 +9,9 @@ const Properties: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedProperties, setSelectedProperties] = useState<number[]>([]);
+  const [viewingProperty, setViewingProperty] = useState<Property | null>(null);
   const [formData, setFormData] = useState<PropertyFormData>({
     nombre: '',
     direccion: '',
@@ -98,6 +101,46 @@ const Properties: React.FC = () => {
     resetForm();
   };
 
+  const handleView = (property: Property) => {
+    setViewingProperty(property);
+  };
+
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedProperties(filteredProperties.map(p => p.id));
+    } else {
+      setSelectedProperties([]);
+    }
+  };
+
+  const handleSelectProperty = (id: number) => {
+    setSelectedProperties(prev => 
+      prev.includes(id) 
+        ? prev.filter(pId => pId !== id)
+        : [...prev, id]
+    );
+  };
+
+  const filteredProperties = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return properties;
+    }
+    const term = searchTerm.toLowerCase();
+    return properties.filter(property =>
+      property.nombre.toLowerCase().includes(term) ||
+      property.direccion.toLowerCase().includes(term) ||
+      property.descripcion.toLowerCase().includes(term)
+    );
+  }, [properties, searchTerm]);
+
+  const truncateText = (text: string, maxLength: number = 30) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
+  const isAllSelected = filteredProperties.length > 0 && selectedProperties.length === filteredProperties.length;
+  const isIndeterminate = selectedProperties.length > 0 && selectedProperties.length < filteredProperties.length;
+
   if (loading) {
     return (
       <div className="properties">
@@ -114,7 +157,7 @@ const Properties: React.FC = () => {
           className="btn btn-primary" 
           onClick={() => setShowForm(true)}
         >
-          Nueva Propiedad
+          Crear propiedad
         </button>
       </div>
 
@@ -178,36 +221,142 @@ const Properties: React.FC = () => {
         </div>
       )}
 
-      <div className="properties-list">
+      {viewingProperty && (
+        <div className="form-modal">
+          <div className="form-content view-content">
+            <h2>Detalles de la Propiedad</h2>
+            <div className="property-details">
+              <div className="detail-row">
+                <strong>Nombre:</strong>
+                <span>{viewingProperty.nombre}</span>
+              </div>
+              <div className="detail-row">
+                <strong>Dirección:</strong>
+                <span>{viewingProperty.direccion}</span>
+              </div>
+              <div className="detail-row">
+                <strong>Descripción:</strong>
+                <span>{viewingProperty.descripcion}</span>
+              </div>
+              <div className="detail-row">
+                <strong>Estado:</strong>
+                <span>{viewingProperty.rentado ? 'Rentado' : 'Disponible'}</span>
+              </div>
+            </div>
+            <div className="form-actions">
+              <button 
+                type="button" 
+                className="btn btn-secondary" 
+                onClick={() => setViewingProperty(null)}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="properties-table-container">
+        <div className="table-controls">
+          <div className="search-container">
+            <span className="search-icon-emoji">🔍</span>
+            <input
+              type="text"
+              className="search-input"
+              placeholder="Buscar"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <button className="filter-button" aria-label="Filtros">
+            <span className="filter-icon">⋮</span>
+          </button>
+        </div>
+
         {properties.length === 0 ? (
           <div className="empty-state">
             <p>No hay propiedades registradas</p>
           </div>
+        ) : filteredProperties.length === 0 ? (
+          <div className="empty-state">
+            <p>No se encontraron propiedades que coincidan con la búsqueda</p>
+          </div>
         ) : (
-          properties.map((property) => (
-            <div key={property.id} className="property-card">
-              <div className="property-content">
-                <h3>{property.nombre}</h3>
-                <p><strong>Dirección:</strong> {property.direccion}</p>
-                <p><strong>Descripción:</strong> {property.descripcion}</p>
-                <p><strong>Estado:</strong> {property.rentado ? 'Rentado' : 'Disponible'}</p>
-              </div>
-              <div className="property-actions">
-                <button 
-                  className="btn btn-sm btn-secondary"
-                  onClick={() => handleEdit(property)}
-                >
-                  Editar
-                </button>
-                <button 
-                  className="btn btn-sm btn-danger"
-                  onClick={() => handleDelete(property.id)}
-                >
-                  Eliminar
-                </button>
-              </div>
-            </div>
-          ))
+          <table className="properties-table">
+            <thead>
+              <tr>
+                <th className="checkbox-column">
+                  <input
+                    type="checkbox"
+                    checked={isAllSelected}
+                    ref={(input) => {
+                      if (input) input.indeterminate = isIndeterminate;
+                    }}
+                    onChange={handleSelectAll}
+                    aria-label="Seleccionar todas las propiedades"
+                  />
+                </th>
+                <th className="sortable">
+                  Nombre
+                  <span className="sort-icon">⬇️</span>
+                </th>
+                <th className="sortable">
+                  Dirección
+                  <span className="sort-icon">⬇️</span>
+                </th>
+                <th>Descripción</th>
+                <th className="actions-column">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredProperties.map((property) => (
+                <tr key={property.id}>
+                  <td className="checkbox-column">
+                    <input
+                      type="checkbox"
+                      checked={selectedProperties.includes(property.id)}
+                      onChange={() => handleSelectProperty(property.id)}
+                      aria-label={`Seleccionar ${property.nombre}`}
+                    />
+                  </td>
+                  <td>{truncateText(property.nombre, 25)}</td>
+                  <td>{truncateText(property.direccion, 25)}</td>
+                  <td>{truncateText(property.descripcion, 35)}</td>
+                  <td className="actions-column">
+                    <div className="action-buttons">
+                      <button
+                        className="btn-action btn-view"
+                        onClick={() => handleView(property)}
+                        aria-label={`Ver ${property.nombre}`}
+                        title="Ver"
+                      >
+                        <span className="action-icon">👁️</span>
+                        <span>Ver</span>
+                      </button>
+                      <button
+                        className="btn-action btn-edit"
+                        onClick={() => handleEdit(property)}
+                        aria-label={`Editar ${property.nombre}`}
+                        title="Editar"
+                      >
+                        <span className="action-icon">✏️</span>
+                        <span>Editar</span>
+                      </button>
+                      <button
+                        className="btn-action btn-delete"
+                        onClick={() => handleDelete(property.id)}
+                        aria-label={`Borrar ${property.nombre}`}
+                        title="Borrar"
+                      >
+                        <span className="action-icon">🗑️</span>
+                        <span>Borrar</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
     </div>
