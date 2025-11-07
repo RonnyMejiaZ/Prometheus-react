@@ -35,7 +35,6 @@ const Inquilinos: React.FC = () => {
     showForm,                                // Si el formulario está visible
     editingEntity: editingInquilino,         // Inquilino que se está editando (null si es nuevo)
     searchTerm,                              // Término de búsqueda actual
-    selectedIds: selectedInquilinos,         // IDs de inquilinos seleccionados
     viewingEntity: viewingInquilino,         // Inquilino que se está viendo en detalle
     formData,                                // Datos del formulario actual
     
@@ -51,13 +50,9 @@ const Inquilinos: React.FC = () => {
     handleDelete,                            // Eliminar inquilino
     handleCancel,                            // Cancelar formulario
     handleView,                              // Ver detalles de inquilino
-    handleSelectAll,                         // Seleccionar/deseleccionar todos
-    handleSelectEntity,                      // Seleccionar/deseleccionar un inquilino
     
     // Utilidades
     truncateText,                            // Función para truncar texto largo
-    isAllSelected,                           // Si todos están seleccionados
-    isIndeterminate,                         // Estado intermedio del checkbox (algunos seleccionados)
     getEntityId,                             // Función para obtener ID de una entidad
     getEntityName,                           // Función para obtener nombre de una entidad
   } = useEntityManagement<Inquilino, InquilinoFormData>({
@@ -184,11 +179,6 @@ const Inquilinos: React.FC = () => {
         filteredEntities={filteredInquilinos}    // Lista filtrada (lo que se muestra)
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}           // Actualiza búsqueda cuando el usuario escribe
-        selectedIds={selectedInquilinos}         // IDs de inquilinos seleccionados
-        isAllSelected={isAllSelected}            // Estado del checkbox "seleccionar todos"
-        isIndeterminate={isIndeterminate}        // Estado intermedio del checkbox
-        onSelectAll={handleSelectAll}            // Handler para seleccionar/deseleccionar todos
-        onSelectEntity={handleSelectEntity}      // Handler para seleccionar un inquilino
         onView={handleView}                      // Abre modal de detalles
         onEdit={handleEditInquilino}             // Abre formulario en modo edición
         onDelete={handleDeleteInquilino}         // Elimina el inquilino
@@ -226,7 +216,6 @@ const Inquilinos: React.FC = () => {
         ]}
         emptyMessage="No hay inquilinos registrados"  // Mensaje cuando no hay datos
         emptySearchMessage="No se encontraron inquilinos que coincidan con la búsqueda"  // Mensaje cuando búsqueda no encuentra resultados
-        selectAllLabel="Seleccionar todos los inquilinos"  // Label accesible para el checkbox
       />
     </div>
   );

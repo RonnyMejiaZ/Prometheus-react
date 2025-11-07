@@ -5,11 +5,6 @@ interface EntityTableProps<T> {
   filteredEntities: T[];
   searchTerm: string;
   onSearchChange: (value: string) => void;
-  selectedIds: number[];
-  isAllSelected: boolean;
-  isIndeterminate: boolean;
-  onSelectAll: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onSelectEntity: (id: number) => void;
   onView: (entity: T) => void;
   onEdit: (entity: T) => void;
   onDelete: (id: number, name: string) => void;
@@ -25,7 +20,6 @@ interface EntityTableProps<T> {
   }>;
   emptyMessage: string;
   emptySearchMessage: string;
-  selectAllLabel: string;
   showSearch?: boolean;
   customActions?: (entity: T) => React.ReactNode;
 }
@@ -35,11 +29,6 @@ export function EntityTable<T>({
   filteredEntities,
   searchTerm,
   onSearchChange,
-  selectedIds,
-  isAllSelected,
-  isIndeterminate,
-  onSelectAll,
-  onSelectEntity,
   onView,
   onEdit,
   onDelete,
@@ -49,7 +38,6 @@ export function EntityTable<T>({
   columns,
   emptyMessage,
   emptySearchMessage,
-  selectAllLabel,
   showSearch = true,
   customActions,
 }: EntityTableProps<T>) {
@@ -174,17 +162,6 @@ export function EntityTable<T>({
         <table className="data-table">
           <thead>
             <tr>
-              <th className="checkbox-column">
-                <input
-                  type="checkbox"
-                  checked={isAllSelected}
-                  ref={(input) => {
-                    if (input) input.indeterminate = isIndeterminate;
-                  }}
-                  onChange={onSelectAll}
-                  aria-label={selectAllLabel}
-                />
-              </th>
               {visibleColumnsList.map((column) => (
                 <th key={column.key}>
                   {column.label}
@@ -199,14 +176,6 @@ export function EntityTable<T>({
               const entityName = getEntityName(entity);
               return (
                 <tr key={entityId}>
-                  <td className="checkbox-column">
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.includes(entityId)}
-                      onChange={() => onSelectEntity(entityId)}
-                      aria-label={`Seleccionar ${entityName}`}
-                    />
-                  </td>
                   {visibleColumnsList.map((column) => {
                     const rendered = column.maxLength
                       ? truncateText(String(column.render(entity)), column.maxLength)

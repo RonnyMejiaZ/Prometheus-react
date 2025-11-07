@@ -32,7 +32,6 @@ const Properties: React.FC = () => {
     showForm,
     editingEntity: editingProperty,
     searchTerm,
-    selectedIds: selectedProperties,
     viewingEntity: viewingProperty,
     formData,
     setFormData,
@@ -44,11 +43,7 @@ const Properties: React.FC = () => {
     handleDelete,
     handleCancel,
     handleView,
-    handleSelectAll,
-    handleSelectEntity,
     truncateText,
-    isAllSelected,
-    isIndeterminate,
     getEntityId,
     getEntityName,
   } = useEntityManagement<Property, PropertyFormData>({
@@ -166,11 +161,6 @@ const Properties: React.FC = () => {
         filteredEntities={filteredProperties}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        selectedIds={selectedProperties}
-        isAllSelected={isAllSelected}
-        isIndeterminate={isIndeterminate}
-        onSelectAll={handleSelectAll}
-        onSelectEntity={handleSelectEntity}
         onView={handleView}
         onEdit={handleEditProperty}
         onDelete={handleDeleteProperty}
@@ -220,7 +210,6 @@ const Properties: React.FC = () => {
         ]}
         emptyMessage="No hay propiedades registradas"
         emptySearchMessage="No se encontraron propiedades que coincidan con la búsqueda"
-        selectAllLabel="Seleccionar todas las propiedades"
       />
     </div>
   );

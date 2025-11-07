@@ -79,7 +79,6 @@ export function useEntityManagement<T, TFormData>({
   const [showForm, setShowForm] = useState(false);                 // Si el formulario está visible
   const [editingEntity, setEditingEntity] = useState<T | null>(null); // Entidad que se está editando
   const [searchTerm, setSearchTerm] = useState('');                // Término de búsqueda
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);    // IDs de entidades seleccionadas
   const [viewingEntity, setViewingEntity] = useState<T | null>(null); // Entidad que se está viendo
   const [formData, setFormData] = useState<TFormData>(initialFormData); // Datos del formulario
 
@@ -195,32 +194,6 @@ export function useEntityManagement<T, TFormData>({
   };
 
   /**
-   * Maneja la selección/deselección de todas las entidades visibles
-   * Se basa en filteredEntities, no en entities, para solo seleccionar lo visible
-   */
-  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.checked) {
-      // Seleccionar todos los IDs de las entidades filtradas (visibles)
-      setSelectedIds(filteredEntities.map(e => getEntityId(e)));
-    } else {
-      // Deseleccionar todo
-      setSelectedIds([]);
-    }
-  };
-
-  /**
-   * Maneja la selección/deselección de una entidad individual
-   * Si ya está seleccionada, la quita; si no, la agrega
-   */
-  const handleSelectEntity = (id: number) => {
-    setSelectedIds(prev =>
-      prev.includes(id)
-        ? prev.filter(eId => eId !== id)  // Remover si ya está seleccionada
-        : [...prev, id]                    // Agregar si no está seleccionada
-    );
-  };
-
-  /**
    * Lista filtrada de entidades basada en el término de búsqueda
    * Se recalcula automáticamente cuando cambian entities, searchTerm o filterFunction
    * useMemo optimiza el rendimiento evitando recalcular si las dependencias no cambian
@@ -244,13 +217,6 @@ export function useEntityManagement<T, TFormData>({
     return text.substring(0, maxLength) + '...';
   };
 
-  // Calcula si todas las entidades visibles están seleccionadas
-  const isAllSelected = filteredEntities.length > 0 && selectedIds.length === filteredEntities.length;
-  
-  // Calcula el estado intermedio del checkbox (algunas pero no todas seleccionadas)
-  // Útil para mostrar el checkbox en estado "indeterminate" visualmente
-  const isIndeterminate = selectedIds.length > 0 && selectedIds.length < filteredEntities.length;
-
   // Retornar todo lo necesario para que el componente pueda funcionar
   return {
     // Datos
@@ -263,7 +229,6 @@ export function useEntityManagement<T, TFormData>({
     showForm,              // Si el formulario está visible
     editingEntity,         // Entidad en edición (null si es nueva)
     searchTerm,            // Término de búsqueda actual
-    selectedIds,           // IDs de entidades seleccionadas
     viewingEntity,         // Entidad que se está viendo
     formData,              // Datos del formulario
     
@@ -279,13 +244,9 @@ export function useEntityManagement<T, TFormData>({
     handleDelete,          // Eliminar entidad
     handleCancel,          // Cancelar formulario
     handleView,            // Ver detalles
-    handleSelectAll,       // Seleccionar/deseleccionar todos
-    handleSelectEntity,    // Seleccionar/deseleccionar una entidad
     
     // Utilidades
     truncateText,          // Función para truncar texto
-    isAllSelected,         // Si todos están seleccionados
-    isIndeterminate,       // Estado intermedio del checkbox
     getEntityId,           // Función para obtener ID
     getEntityName,         // Función para obtener nombre
     loadData,              // Función para recargar datos

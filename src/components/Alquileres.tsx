@@ -32,7 +32,6 @@ const Alquileres: React.FC = () => {
     showForm,
     editingEntity: editingAlquiler,
     searchTerm,
-    selectedIds: selectedAlquileres,
     viewingEntity: viewingAlquiler,
     formData,
     setShowForm,
@@ -43,11 +42,7 @@ const Alquileres: React.FC = () => {
     handleDelete,
     handleCancel,
     handleView,
-    handleSelectAll,
-    handleSelectEntity,
     truncateText,
-    isAllSelected,
-    isIndeterminate,
     getEntityId,
     getEntityName,
     loadData,
@@ -917,11 +912,6 @@ const Alquileres: React.FC = () => {
         filteredEntities={filteredAlquileres}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        selectedIds={selectedAlquileres}
-        isAllSelected={isAllSelected}
-        isIndeterminate={isIndeterminate}
-        onSelectAll={handleSelectAll}
-        onSelectEntity={handleSelectEntity}
         onView={handleView}
         onEdit={handleEditAlquiler}
         onDelete={handleDeleteAlquiler}
@@ -1015,7 +1005,6 @@ const Alquileres: React.FC = () => {
         ]}
         emptyMessage="No hay alquileres registrados"
         emptySearchMessage="No se encontraron alquileres que coincidan con la búsqueda"
-        selectAllLabel="Seleccionar todos los alquileres"
       />
     </div>
   );

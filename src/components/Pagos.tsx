@@ -39,7 +39,6 @@ const Pagos: React.FC = () => {
     showForm,
     editingEntity: editingPago,
     searchTerm,
-    selectedIds: selectedPagos,
     viewingEntity: viewingPago,
     formData,
     setShowForm,
@@ -50,11 +49,7 @@ const Pagos: React.FC = () => {
     handleDelete,
     handleCancel,
     handleView,
-    handleSelectAll,
-    handleSelectEntity,
     truncateText,
-    isAllSelected,
-    isIndeterminate,
     getEntityId,
     getEntityName,
     handleSubmit,
@@ -560,11 +555,6 @@ const Pagos: React.FC = () => {
         filteredEntities={pagosFiltrados}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        selectedIds={selectedPagos}
-        isAllSelected={isAllSelected}
-        isIndeterminate={isIndeterminate}
-        onSelectAll={handleSelectAll}
-        onSelectEntity={handleSelectEntity}
         onView={handleView}
         onEdit={handleEditPago}
         onDelete={handleDeletePago}
@@ -665,7 +655,6 @@ const Pagos: React.FC = () => {
         ]}
         emptyMessage="No hay pagos registrados"
         emptySearchMessage="No se encontraron pagos que coincidan con la búsqueda"
-        selectAllLabel="Seleccionar todos los pagos"
         showSearch={false}
       />
     </div>
