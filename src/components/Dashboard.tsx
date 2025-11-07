@@ -22,6 +22,20 @@ const Dashboard: React.FC = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const normalizeAmount = (value: unknown): number => {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === 'string') {
+      const sanitized = value.replace(/[^\d.-]/g, '');
+      const parsed = Number.parseFloat(sanitized);
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    return 0;
+  };
+
   const loadStats = async () => {
     try {
       setLoading(true);
@@ -35,40 +49,47 @@ const Dashboard: React.FC = () => {
       const alquileres: Alquiler[] = alquileresRes.data?.items || [];
       const pagos: Pago[] = pagosRes.data?.items || [];
 
-      const activeRentals = alquileres.filter(a => a.activo).length;
-      
+      const activeRentalsList = alquileres.filter(a => a.activo);
+
       const now = new Date();
       const currentMonth = now.getMonth();
       const currentYear = now.getFullYear();
       
-      const currentMonthPayments = pagos.filter(p => {
-        const paymentDate = new Date(p.fechaPago);
-        return paymentDate.getMonth() === currentMonth && 
-               paymentDate.getFullYear() === currentYear &&
-               p.pagoRenta;
-      });
-      
-      const collectedPayments = currentMonthPayments.reduce((sum, p) => sum + p.montoMensual, 0);
+      const rentPaymentsThisMonth = new Map<number, number>();
 
-      const overduePayments = pagos.filter(p => {
-        const paymentDate = new Date(p.fechaPago);
-        return paymentDate < now && !p.pagoRenta;
-      }).length;
+      pagos.forEach((pago) => {
+        if (!pago.pagoRenta) {
+          return;
+        }
+
+        const paymentDate = new Date(pago.fechaPago);
+        const isSameMonth = paymentDate.getMonth() === currentMonth && paymentDate.getFullYear() === currentYear;
+
+        if (isSameMonth) {
+          const amount = normalizeAmount(pago.montoMensual);
+          const currentAmount = rentPaymentsThisMonth.get(pago.alquilerId) ?? 0;
+          rentPaymentsThisMonth.set(pago.alquilerId, currentAmount + amount);
+        }
+      });
+
+      const collectedPayments = Array.from(rentPaymentsThisMonth.values()).reduce(
+        (sum, amount) => sum + amount,
+        0
+      );
+
+      const overduePayments = activeRentalsList.filter(alquiler => !rentPaymentsThisMonth.has(alquiler.id)).length;
 
       setStats({
-        activeRentals,
+        activeRentals: activeRentalsList.length,
         collectedPayments,
         overduePayments
       });
 
-      const monthlyData = generateMonthlyIncome(pagos);
+      const monthlyData = generateMonthlyIncome(pagos, normalizeAmount);
       setMonthlyIncome(monthlyData.length > 0 ? monthlyData : generateEmptyMonthlyData());
 
-      const paidCount = pagos.filter(p => p.pagoRenta).length;
-      const overdueCount = pagos.filter(p => {
-        const paymentDate = new Date(p.fechaPago);
-        return paymentDate < now && !p.pagoRenta;
-      }).length;
+      const paidCount = rentPaymentsThisMonth.size;
+      const overdueCount = Math.max(activeRentalsList.length - paidCount, 0);
 
       setPaymentStatus([
         { name: 'Pagados', value: paidCount || 0 },
@@ -87,7 +108,10 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const generateMonthlyIncome = (pagos: Pago[]): Array<{ month: string; income: number }> => {
+  const generateMonthlyIncome = (
+    pagos: Pago[],
+    toAmount: (value: unknown) => number
+  ): Array<{ month: string; income: number }> => {
     const months: { [key: string]: number } = {};
     const monthNames = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
     
@@ -99,12 +123,14 @@ const Dashboard: React.FC = () => {
     }
 
     pagos.forEach(pago => {
-      if (pago.pagoRenta) {
-        const date = new Date(pago.fechaPago);
-        const key = `${monthNames[date.getMonth()]}. ${date.getFullYear()}`;
-        if (months[key] !== undefined) {
-          months[key] += pago.montoMensual;
-        }
+      if (!pago.pagoRenta) {
+        return;
+      }
+
+      const date = new Date(pago.fechaPago);
+      const key = `${monthNames[date.getMonth()]}. ${date.getFullYear()}`;
+      if (months[key] !== undefined) {
+        months[key] += toAmount(pago.montoMensual);
       }
     });
 
