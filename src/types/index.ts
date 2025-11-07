@@ -37,12 +37,16 @@ export interface Inquilino {
 
 export interface Alquiler {
   id: number;
+  nombre: string;
   propiedadId: number;
   inquilinoId: number;
   fechaInicio: string;
   fechaFin: string;
+  meses: number;
   montoMensual: number;
+  personas: number;
   activo: boolean;
+  contrato?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -50,12 +54,12 @@ export interface Alquiler {
 export interface Pago {
   id: number;
   alquilerId: number;
-  monto: number;
   fechaPago: string;
-  metodoPago: string;
-  estado: string;
-  createdAt?: string;
-  updatedAt?: string;
+  montoMensual: number;
+  pagoRenta: boolean;
+  pagoAgua: boolean;
+  pagoEnergia: boolean;
+  pagoGas: boolean;
 }
 
 export interface PerfilData {
@@ -85,12 +89,16 @@ export interface InquilinoFormData {
 }
 
 export interface AlquilerFormData {
+  nombre: string;
   propiedadId: number;
   inquilinoId: number;
   fechaInicio: string;
   fechaFin: string;
+  meses: number;
   montoMensual: number;
+  personas: number;
   activo: boolean;
+  contrato?: File | null;
 }
 
 export interface PagoFormData {

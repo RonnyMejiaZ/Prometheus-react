@@ -1,0 +1,378 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { apiService } from '../services/api';
+import { Inquilino, InquilinoFormData } from '../types';
+import './shared-table.css';
+
+const Inquilinos: React.FC = () => {
+  const [inquilinos, setInquilinos] = useState<Inquilino[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [editingInquilino, setEditingInquilino] = useState<Inquilino | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedInquilinos, setSelectedInquilinos] = useState<number[]>([]);
+  const [viewingInquilino, setViewingInquilino] = useState<Inquilino | null>(null);
+  const [formData, setFormData] = useState<InquilinoFormData>({
+    nombre: '',
+    email: '',
+    telefono: '',
+    documento: ''
+  });
+
+  useEffect(() => {
+    loadInquilinos();
+  }, []);
+
+  const loadInquilinos = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await apiService.getInquilinos(0, 100, '');
+      if (response.success && response.data) {
+        setInquilinos(response.data.items);
+      }
+    } catch (err) {
+      setError('Error al cargar los inquilinos');
+      console.error('Error loading inquilinos:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      if (editingInquilino) {
+        await apiService.updateInquilino(editingInquilino.id, {
+          nombre: formData.nombre,
+          email: formData.email,
+          telefono: formData.telefono,
+          documento: formData.documento
+        });
+      } else {
+        await apiService.createInquilino({
+          nombre: formData.nombre,
+          email: formData.email,
+          telefono: formData.telefono,
+          documento: formData.documento
+        });
+      }
+      await loadInquilinos();
+      setShowForm(false);
+      setEditingInquilino(null);
+      resetForm();
+    } catch (err) {
+      setError('Error al guardar el inquilino');
+      console.error('Error saving inquilino:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEdit = (inquilino: Inquilino) => {
+    setEditingInquilino(inquilino);
+    setFormData({
+      nombre: inquilino.nombre,
+      email: inquilino.email,
+      telefono: inquilino.telefono,
+      documento: inquilino.documento || ''
+    });
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id: number) => {
+    if (window.confirm('¿Estás seguro de que quieres eliminar este inquilino?')) {
+      try {
+        setLoading(true);
+        await apiService.deleteInquilino(id);
+        await loadInquilinos();
+      } catch (err) {
+        setError('Error al eliminar el inquilino');
+        console.error('Error deleting inquilino:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      nombre: '',
+      email: '',
+      telefono: '',
+      documento: ''
+    });
+  };
+
+  const handleCancel = () => {
+    setShowForm(false);
+    setEditingInquilino(null);
+    resetForm();
+  };
+
+  const handleView = (inquilino: Inquilino) => {
+    setViewingInquilino(inquilino);
+  };
+
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedInquilinos(filteredInquilinos.map(i => i.id));
+    } else {
+      setSelectedInquilinos([]);
+    }
+  };
+
+  const handleSelectInquilino = (id: number) => {
+    setSelectedInquilinos(prev => 
+      prev.includes(id) 
+        ? prev.filter(iId => iId !== id)
+        : [...prev, id]
+    );
+  };
+
+  const filteredInquilinos = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return inquilinos;
+    }
+    const term = searchTerm.toLowerCase();
+    return inquilinos.filter(inquilino =>
+      inquilino.nombre.toLowerCase().includes(term) ||
+      inquilino.email.toLowerCase().includes(term) ||
+      inquilino.telefono.toLowerCase().includes(term) ||
+      inquilino.documento?.toLowerCase().includes(term)
+    );
+  }, [inquilinos, searchTerm]);
+
+  const truncateText = (text: string, maxLength: number = 30) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
+    const isAllSelected = filteredInquilinos.length > 0 && selectedInquilinos.length === filteredInquilinos.length;
+  const isIndeterminate = selectedInquilinos.length > 0 && selectedInquilinos.length < filteredInquilinos.length;
+
+
+
+  if (loading) {
+    return (
+      <div className="page-container">
+        <div className="loading">Cargando inquilinos...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="page-container">
+      <div className="page-header">
+        <h1>Inquilinos</h1>
+        <button 
+          className="btn btn-primary" 
+          onClick={() => setShowForm(true)}
+        >
+          Nuevo Inquilino
+        </button>
+      </div>
+
+      {error && (
+        <div className="error-message">
+          {error}
+        </div>
+      )}
+
+      {showForm && (
+        <div className="form-modal">
+          <div className="form-content">
+            <h2>{editingInquilino ? 'Editar Inquilino' : 'Nuevo Inquilino'}</h2>
+            <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label>Nombre:</label>
+                <input
+                  type="text"
+                  value={formData.nombre}
+                  onChange={(e) => setFormData({...formData, nombre: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Email:</label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Teléfono:</label>
+                <input
+                  type="text"
+                  value={formData.telefono}
+                  onChange={(e) => setFormData({...formData, telefono: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Documento:</label>
+                <input
+                  type="text"
+                  value={formData.documento}
+                  onChange={(e) => setFormData({...formData, documento: e.target.value})}
+                />
+              </div>
+              <div className="form-actions">
+                <button type="submit" className="btn btn-primary">
+                  {editingInquilino ? 'Actualizar' : 'Crear'}
+                </button>
+                <button type="button" className="btn btn-secondary" onClick={handleCancel}>
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+{viewingInquilino && (
+        <div className="form-modal">
+          <div className="form-content view-content">
+            <h2>Detalles de la Propiedad</h2>
+            <div className="detail-section">
+              <div className="detail-row">
+                <strong>Nombre:</strong>
+                <span>{viewingInquilino.nombre}</span>
+              </div>
+              <div className="detail-row">
+                <strong>Dirección:</strong>
+                <span>{viewingInquilino.email}</span>
+              </div>
+              <div className="detail-row">
+                <strong>Descripción:</strong>
+                <span>{viewingInquilino.telefono}</span>
+              </div>
+              <div className="detail-row">
+                <strong>Estado:</strong>
+                <span>{viewingInquilino.documento}</span>
+              </div>
+            </div>
+            <div className="form-actions">
+              <button 
+                type="button" 
+                className="btn btn-secondary" 
+                onClick={() => setViewingInquilino(null)}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="table-container">
+        <div className="table-controls">
+          <div className="search-container">
+            <span className="search-icon-emoji">🔍</span>
+            <input
+              type="text"
+              className="search-input"
+              placeholder="Buscar"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <button className="filter-button" aria-label="Filtros">
+            <span className="filter-icon">⋮</span>
+          </button>
+        </div>
+
+        {inquilinos.length === 0 ? (
+          <div className="empty-state">
+            <p>No hay inquilinos registrados</p>
+          </div>
+        ) : filteredInquilinos.length === 0 ? (
+          <div className="empty-state">
+            <p>No se encontraron propiedades que coincidan con la búsqueda</p>
+          </div>
+        ) : (
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th className="checkbox-column">
+                  <input
+                    type="checkbox"
+                    checked={isAllSelected}
+                    ref={(input) => {
+                      if (input) input.indeterminate = isIndeterminate;
+                    }}
+                    onChange={handleSelectAll}
+                    aria-label="Seleccionar todas las propiedades"
+                  />
+                </th>
+                <th className="sortable">
+                  Nombre
+                  <span className="sort-icon">⬇️</span>
+                </th>
+                <th className="sortable">
+                  Dirección
+                  <span className="sort-icon">⬇️</span>
+                </th>
+                <th>Descripción</th>
+                <th className="actions-column">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredInquilinos.map((inquilino) => (
+                <tr key={inquilino.id}>
+                  <td className="checkbox-column">
+                    <input
+                      type="checkbox"
+                      checked={selectedInquilinos.includes(inquilino.id)}
+                      onChange={() => handleSelectInquilino(inquilino.id)}
+                      aria-label={`Seleccionar ${inquilino.nombre}`}
+                    />
+                  </td>
+                  <td>{truncateText(inquilino.nombre, 25)}</td>
+                  <td>{truncateText(inquilino.email, 25)}</td>
+                  <td>{truncateText(inquilino.telefono, 35)}</td>
+                  <td className="actions-column">
+                    <div className="action-buttons">
+                      <button
+                        className="btn-action btn-view"
+                        onClick={() => handleView(inquilino)}
+                        aria-label={`Ver ${inquilino.nombre}`}
+                        title="Ver"
+                      >
+                        <span className="action-icon">👁️</span>
+                        <span>Ver</span>
+                      </button>
+                      <button
+                        className="btn-action btn-edit"
+                        onClick={() => handleEdit(inquilino)}
+                        aria-label={`Editar ${inquilino.nombre}`}
+                        title="Editar"
+                      >
+                        <span className="action-icon">✏️</span>
+                        <span>Editar</span>
+                      </button>
+                      <button
+                        className="btn-action btn-delete"
+                        onClick={() => handleDelete(inquilino.id)}
+                        aria-label={`Borrar ${inquilino.nombre}`}
+                        title="Borrar"
+                      >
+                        <span className="action-icon">🗑️</span>
+                        <span>Borrar</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Inquilinos;

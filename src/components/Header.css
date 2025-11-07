@@ -11,6 +11,11 @@
   justify-content: space-between;
   padding: 0 24px;
   z-index: 999;
+  transition: left 0.3s ease;
+}
+
+.app-header.collapsed {
+  left: 70px;
 }
 
 .header-left {
@@ -41,6 +46,41 @@
 
 .header-back-button:hover {
   background-color: #2d2d2d;
+}
+
+.header-menu-button {
+  background: none;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 8px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.header-menu-button:hover {
+  background-color: #2d2d2d;
+}
+
+.mobile-only {
+  display: none;
+}
+
+.desktop-only {
+  display: flex;
+}
+
+@media (max-width: 640px) {
+  .mobile-only {
+    display: flex;
+  }
+
+  .desktop-only {
+    display: none;
+  }
 }
 
 .header-center {
@@ -125,10 +165,46 @@
   opacity: 0.9;
 }
 
-@media (max-width: 768px) {
+/* Tablet styles (640px - 1024px) */
+@media (max-width: 1024px) {
+  .app-header {
+    padding: 0 20px;
+  }
+
+  .header-back-button {
+    padding: 6px;
+  }
+
+  .header-back-button svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Mobile styles (< 640px) */
+@media (max-width: 640px) {
   .app-header {
     left: 0;
-    padding: 0 16px;
+    right: 0;
+    padding: 0 12px;
+    height: 56px;
+  }
+
+  .app-header.collapsed {
+    left: 0;
+  }
+
+  .header-left {
+    gap: 12px;
+  }
+
+  .header-back-button {
+    padding: 8px;
+  }
+
+  .header-back-button svg {
+    width: 20px;
+    height: 20px;
   }
 
   .header-center {
@@ -136,6 +212,6 @@
   }
 
   .header-logo {
-    font-size: 18px;
+    font-size: 16px;
   }
 }

@@ -45,14 +45,14 @@ const Dashboard: React.FC = () => {
         const paymentDate = new Date(p.fechaPago);
         return paymentDate.getMonth() === currentMonth && 
                paymentDate.getFullYear() === currentYear &&
-               p.estado === 'pagado';
+               p.pagoRenta;
       });
       
-      const collectedPayments = currentMonthPayments.reduce((sum, p) => sum + p.monto, 0);
+      const collectedPayments = currentMonthPayments.reduce((sum, p) => sum + p.montoMensual, 0);
 
       const overduePayments = pagos.filter(p => {
         const paymentDate = new Date(p.fechaPago);
-        return paymentDate < now && p.estado !== 'pagado';
+        return paymentDate < now && !p.pagoRenta;
       }).length;
 
       setStats({
@@ -64,10 +64,10 @@ const Dashboard: React.FC = () => {
       const monthlyData = generateMonthlyIncome(pagos);
       setMonthlyIncome(monthlyData.length > 0 ? monthlyData : generateEmptyMonthlyData());
 
-      const paidCount = pagos.filter(p => p.estado === 'pagado').length;
+      const paidCount = pagos.filter(p => p.pagoRenta).length;
       const overdueCount = pagos.filter(p => {
         const paymentDate = new Date(p.fechaPago);
-        return paymentDate < now && p.estado !== 'pagado';
+        return paymentDate < now && !p.pagoRenta;
       }).length;
 
       setPaymentStatus([
@@ -99,11 +99,11 @@ const Dashboard: React.FC = () => {
     }
 
     pagos.forEach(pago => {
-      if (pago.estado === 'pagado') {
+      if (pago.pagoRenta) {
         const date = new Date(pago.fechaPago);
         const key = `${monthNames[date.getMonth()]}. ${date.getFullYear()}`;
         if (months[key] !== undefined) {
-          months[key] += pago.monto;
+          months[key] += pago.montoMensual;
         }
       }
     });

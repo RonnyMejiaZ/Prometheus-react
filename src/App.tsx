@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { apiService } from './services/api';
+import { NavigationProvider, useNavigation } from './contexts/NavigationContext';
 import './App.css';
 
 // Components
@@ -11,7 +12,6 @@ import Properties from './components/Properties';
 import Inquilinos from './components/Inquilinos';
 import Alquileres from './components/Alquileres';
 import Pagos from './components/Pagos';
-import Perfil from './components/Perfil';
 import Navigation from './components/Navigation';
 import Header from './components/Header';
 
@@ -37,11 +37,13 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isCollapsed } = useNavigation();
+  
   return (
     <>
       <Navigation />
       <Header />
-      <main className="main-content">
+      <main className={`main-content ${isCollapsed ? 'collapsed' : ''}`}>
         {children}
       </main>
     </>
@@ -60,8 +62,9 @@ function App() {
 
   return (
     <Router>
-      <div className="App">
-        <Routes>
+      <NavigationProvider>
+        <div className="App">
+          <Routes>
           <Route path="/login" element={
             <PublicRoute>
               <Login />
@@ -107,22 +110,23 @@ function App() {
               </AppLayout>
             </ProtectedRoute>
           } />
-          <Route path="/pagos" element={
+          <Route path="/alquileres/:alquilerId/pagos" element={
             <ProtectedRoute>
               <AppLayout>
                 <Pagos />
               </AppLayout>
             </ProtectedRoute>
           } />
-          <Route path="/perfil" element={
+          <Route path="/pagos" element={
             <ProtectedRoute>
               <AppLayout>
-                <Perfil />
+                <Navigate to="/alquileres" replace />
               </AppLayout>
             </ProtectedRoute>
           } />
-        </Routes>
-      </div>
+          </Routes>
+        </div>
+      </NavigationProvider>
     </Router>
   );
 }

@@ -29,6 +29,11 @@ body {
   margin-top: 64px;
   background-color: #000000;
   min-height: calc(100vh - 64px);
+  transition: margin-left 0.3s ease;
+}
+
+.main-content.collapsed {
+  margin-left: 70px;
 }
 
 /* Botones */
@@ -100,10 +105,26 @@ body {
   font-size: 16px;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+/* Tablet styles (640px - 1024px) */
+@media (max-width: 1024px) {
+  .main-content {
+    margin-left: 200px;
+  }
+
+  .main-content.collapsed {
+    margin-left: 70px;
+  }
+}
+
+/* Mobile styles (< 640px) */
+@media (max-width: 640px) {
   .main-content {
     margin-left: 0;
-    margin-top: 0;
+    margin-top: 56px;
+    padding: 0;
+  }
+
+  .main-content.collapsed {
+    margin-left: 0;
   }
 }

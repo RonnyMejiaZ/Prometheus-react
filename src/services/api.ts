@@ -107,14 +107,56 @@ class ApiService {
     return response.data;
   }
 
-  async createAlquiler(alquiler: Omit<Alquiler, 'id'>): Promise<ApiResponse<Alquiler>> {
-    const response = await this.api.post('/alquileres', alquiler);
-    return response.data;
+  async createAlquiler(alquiler: Omit<Alquiler, 'id' | 'contrato'>, contratoFile?: File | null): Promise<ApiResponse<Alquiler>> {
+    if (contratoFile) {
+      const formData = new FormData();
+      formData.append('nombre', alquiler.nombre);
+      formData.append('propiedadId', alquiler.propiedadId.toString());
+      formData.append('inquilinoId', alquiler.inquilinoId.toString());
+      formData.append('fechaInicio', alquiler.fechaInicio);
+      formData.append('fechaFin', alquiler.fechaFin);
+      formData.append('meses', alquiler.meses.toString());
+      formData.append('montoMensual', alquiler.montoMensual.toString());
+      formData.append('personas', alquiler.personas.toString());
+      formData.append('activo', alquiler.activo.toString());
+      formData.append('contrato', contratoFile);
+      
+      const response = await this.api.post('/alquileres', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } else {
+      const response = await this.api.post('/alquileres', alquiler);
+      return response.data;
+    }
   }
 
-  async updateAlquiler(id: number, alquiler: Omit<Alquiler, 'id'>): Promise<ApiResponse<Alquiler>> {
-    const response = await this.api.put(`/alquileres/${id}`, alquiler);
-    return response.data;
+  async updateAlquiler(id: number, alquiler: Omit<Alquiler, 'id' | 'contrato'>, contratoFile?: File | null): Promise<ApiResponse<Alquiler>> {
+    if (contratoFile) {
+      const formData = new FormData();
+      formData.append('nombre', alquiler.nombre);
+      formData.append('propiedadId', alquiler.propiedadId.toString());
+      formData.append('inquilinoId', alquiler.inquilinoId.toString());
+      formData.append('fechaInicio', alquiler.fechaInicio);
+      formData.append('fechaFin', alquiler.fechaFin);
+      formData.append('meses', alquiler.meses.toString());
+      formData.append('montoMensual', alquiler.montoMensual.toString());
+      formData.append('personas', alquiler.personas.toString());
+      formData.append('activo', alquiler.activo.toString());
+      formData.append('contrato', contratoFile);
+      
+      const response = await this.api.put(`/alquileres/${id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } else {
+      const response = await this.api.put(`/alquileres/${id}`, alquiler);
+      return response.data;
+    }
   }
 
   async deleteAlquiler(id: number): Promise<ApiResponse<void>> {

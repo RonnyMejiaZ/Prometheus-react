@@ -1,364 +1,227 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React from 'react';
 import { apiService } from '../services/api';
 import { Property, PropertyFormData } from '../types';
-import './Properties.css';
+import { useEntityManagement } from '../hooks/useEntityManagement';
+import { PageHeader } from './shared/PageHeader';
+import { LoadingState } from './shared/LoadingState';
+import { ErrorMessage } from './shared/ErrorMessage';
+import { EntityFormModal } from './shared/EntityFormModal';
+import { EntityDetailModal } from './shared/EntityDetailModal';
+import { EntityTable } from './shared/EntityTable';
+import './shared-table.css';
 
+/**
+ * Componente principal para gestionar Propiedades
+ * 
+ * Este componente utiliza el mismo hook useEntityManagement que Inquilinos,
+ * pero configurado para trabajar con Propiedades. Esto demuestra la reutilización
+ * del código: la misma lógica funciona para diferentes tipos de entidades.
+ * 
+ * La estructura es idéntica a Inquilinos, solo cambian:
+ * - Los tipos (Property vs Inquilino)
+ * - Las funciones de API
+ * - Los campos del formulario
+ * - La función de filtrado
+ */
 const Properties: React.FC = () => {
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [showForm, setShowForm] = useState(false);
-  const [editingProperty, setEditingProperty] = useState<Property | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedProperties, setSelectedProperties] = useState<number[]>([]);
-  const [viewingProperty, setViewingProperty] = useState<Property | null>(null);
-  const [formData, setFormData] = useState<PropertyFormData>({
-    nombre: '',
-    direccion: '',
-    descripcion: '',
-    rentado: false
-  });
-
-  useEffect(() => {
-    loadProperties();
-  }, []);
-
-  const loadProperties = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await apiService.getProperties(0, 100, '');
-      if (response.success && response.data) {
-        setProperties(response.data.items);
-      }
-    } catch (err) {
-      setError('Error al cargar las propiedades');
-      console.error('Error loading properties:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      setLoading(true);
-      if (editingProperty) {
-        await apiService.updateProperty(editingProperty.id, formData);
-      } else {
-        await apiService.createProperty(formData);
-      }
-      await loadProperties();
-      setShowForm(false);
-      setEditingProperty(null);
-      resetForm();
-    } catch (err) {
-      setError('Error al guardar la propiedad');
-      console.error('Error saving property:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEdit = (property: Property) => {
-    setEditingProperty(property);
-    setFormData({
-      nombre: property.nombre,
-      direccion: property.direccion,
-      descripcion: property.descripcion,
-      rentado: property.rentado
-    });
-    setShowForm(true);
-  };
-
-  const handleDelete = async (id: number) => {
-    if (window.confirm('¿Estás seguro de que quieres eliminar esta propiedad?')) {
-      try {
-        setLoading(true);
-        await apiService.deleteProperty(id);
-        await loadProperties();
-      } catch (err) {
-        setError('Error al eliminar la propiedad');
-        console.error('Error deleting property:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
-  const resetForm = () => {
-    setFormData({
+  const {
+    entities: properties,
+    filteredEntities: filteredProperties,
+    loading,
+    error,
+    showForm,
+    editingEntity: editingProperty,
+    searchTerm,
+    selectedIds: selectedProperties,
+    viewingEntity: viewingProperty,
+    formData,
+    setFormData,
+    setShowForm,
+    setSearchTerm,
+    setViewingEntity,
+    handleSubmit,
+    handleEdit,
+    handleDelete,
+    handleCancel,
+    handleView,
+    handleSelectAll,
+    handleSelectEntity,
+    truncateText,
+    isAllSelected,
+    isIndeterminate,
+    getEntityId,
+    getEntityName,
+  } = useEntityManagement<Property, PropertyFormData>({
+    // Configuración específica de Propiedades (similar a Inquilinos pero con funciones diferentes)
+    loadEntities: () => apiService.getProperties(0, 100, ''),
+    createEntity: (data) => apiService.createProperty(data),
+    updateEntity: (id, data) => apiService.updateProperty(id, data),
+    deleteEntity: (id) => apiService.deleteProperty(id),
+    getEntityId: (p) => p.id,
+    getEntityName: (p) => p.nombre,
+    
+    // Filtrado por nombre, dirección o descripción
+    filterFunction: (property, term) =>
+      property.nombre.toLowerCase().includes(term) ||
+      property.direccion.toLowerCase().includes(term) ||
+      property.descripcion.toLowerCase().includes(term),
+    
+    // Valores iniciales del formulario para Propiedades
+    initialFormData: {
       nombre: '',
       direccion: '',
       descripcion: '',
-      rentado: false
-    });
+      rentado: false,  // Campo booleano específico de Propiedades
+    },
+    
+    // Mensajes de error personalizados
+    loadError: 'Error al cargar las propiedades',
+    saveError: 'Error al guardar la propiedad',
+    deleteError: 'Error al eliminar la propiedad',
+  });
+
+  // Mapea Property a PropertyFormData al editar
+  const handleEditProperty = (property: Property) => {
+    handleEdit(property, (p) => ({
+      nombre: p.nombre,
+      direccion: p.direccion,
+      descripcion: p.descripcion,
+      rentado: p.rentado,
+    }));
   };
 
-  const handleCancel = () => {
-    setShowForm(false);
-    setEditingProperty(null);
-    resetForm();
+  const handleDeleteProperty = (id: number, name: string) => {
+    handleDelete(id, name);
   };
 
-  const handleView = (property: Property) => {
-    setViewingProperty(property);
-  };
-
-  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.checked) {
-      setSelectedProperties(filteredProperties.map(p => p.id));
-    } else {
-      setSelectedProperties([]);
-    }
-  };
-
-  const handleSelectProperty = (id: number) => {
-    setSelectedProperties(prev => 
-      prev.includes(id) 
-        ? prev.filter(pId => pId !== id)
-        : [...prev, id]
-    );
-  };
-
-  const filteredProperties = useMemo(() => {
-    if (!searchTerm.trim()) {
-      return properties;
-    }
-    const term = searchTerm.toLowerCase();
-    return properties.filter(property =>
-      property.nombre.toLowerCase().includes(term) ||
-      property.direccion.toLowerCase().includes(term) ||
-      property.descripcion.toLowerCase().includes(term)
-    );
-  }, [properties, searchTerm]);
-
-  const truncateText = (text: string, maxLength: number = 30) => {
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
-  };
-
-  const isAllSelected = filteredProperties.length > 0 && selectedProperties.length === filteredProperties.length;
-  const isIndeterminate = selectedProperties.length > 0 && selectedProperties.length < filteredProperties.length;
-
-  if (loading) {
-    return (
-      <div className="properties">
-        <div className="loading">Cargando propiedades...</div>
-      </div>
-    );
+  // Estado de carga inicial
+  if (loading && properties.length === 0) {
+    return <LoadingState message="Cargando propiedades..." />;
   }
 
   return (
-    <div className="properties">
-      <div className="properties-header">
-        <h1>Propiedades</h1>
-        <button 
-          className="btn btn-primary" 
-          onClick={() => setShowForm(true)}
-        >
-          Crear propiedad
-        </button>
-      </div>
+    <div className="page-container">
+      <PageHeader
+        title="Propiedades"
+        buttonText="Crear propiedad"
+        onButtonClick={() => setShowForm(true)}
+      />
 
-      {error && (
-        <div className="error-message">
-          {error}
-        </div>
-      )}
+      <ErrorMessage message={error} />
 
-      {showForm && (
-        <div className="form-modal">
-          <div className="form-content">
-            <h2>{editingProperty ? 'Editar Propiedad' : 'Nueva Propiedad'}</h2>
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label>Nombre:</label>
-                <input
-                  type="text"
-                  value={formData.nombre}
-                  onChange={(e) => setFormData({...formData, nombre: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Dirección:</label>
-                <input
-                  type="text"
-                  value={formData.direccion}
-                  onChange={(e) => setFormData({...formData, direccion: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Descripción:</label>
-                <textarea
-                  value={formData.descripcion}
-                  onChange={(e) => setFormData({...formData, descripcion: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={formData.rentado}
-                    onChange={(e) => setFormData({...formData, rentado: e.target.checked})}
-                  />
-                  Rentado
-                </label>
-              </div>
-              <div className="form-actions">
-                <button type="submit" className="btn btn-primary">
-                  {editingProperty ? 'Actualizar' : 'Crear'}
-                </button>
-                <button type="button" className="btn btn-secondary" onClick={handleCancel}>
-                  Cancelar
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Formulario para crear/editar propiedades */}
+      <EntityFormModal<PropertyFormData>
+        show={showForm}
+        isEditing={!!editingProperty}
+        title="Nueva Propiedad"
+        editTitle="Editar Propiedad"
+        formData={formData}
+        onFormDataChange={setFormData}
+        onSubmit={handleSubmit}
+        onCancel={handleCancel}
+        fields={[
+          { key: 'nombre', label: 'Nombre', type: 'text', required: true },
+          { key: 'direccion', label: 'Dirección', type: 'text', required: true },
+          { key: 'descripcion', label: 'Descripción', type: 'textarea', required: true },
+          { key: 'rentado', label: 'Rentado', type: 'checkbox' },  // Campo checkbox específico
+        ]}
+      />
 
+      {/* Modal de detalles con renderizado personalizado para el campo 'rentado' */}
       {viewingProperty && (
-        <div className="form-modal">
-          <div className="form-content view-content">
-            <h2>Detalles de la Propiedad</h2>
-            <div className="property-details">
-              <div className="detail-row">
-                <strong>Nombre:</strong>
-                <span>{viewingProperty.nombre}</span>
-              </div>
-              <div className="detail-row">
-                <strong>Dirección:</strong>
-                <span>{viewingProperty.direccion}</span>
-              </div>
-              <div className="detail-row">
-                <strong>Descripción:</strong>
-                <span>{viewingProperty.descripcion}</span>
-              </div>
-              <div className="detail-row">
-                <strong>Estado:</strong>
-                <span>{viewingProperty.rentado ? 'Rentado' : 'Disponible'}</span>
-              </div>
-            </div>
-            <div className="form-actions">
-              <button 
-                type="button" 
-                className="btn btn-secondary" 
-                onClick={() => setViewingProperty(null)}
-              >
-                Cerrar
-              </button>
-            </div>
-          </div>
-        </div>
+        <EntityDetailModal
+          show={!!viewingProperty}
+          entity={viewingProperty}
+          title="Detalles de la Propiedad"
+          fields={[
+            { key: 'nombre', label: 'Nombre' },
+            { key: 'direccion', label: 'Dirección' },
+            { key: 'descripcion', label: 'Descripción' },
+            {
+              key: 'rentado',
+              label: 'Rentado',
+              render: (p: Property) => (
+                <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+                  {p.rentado ? (
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="12" cy="12" r="10" fill="#10b981" stroke="#10b981" strokeWidth="2"/>
+                      <path d="M8 12L11 15L16 9" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  ) : (
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="12" cy="12" r="10" fill="#ef4444" stroke="#ef4444" strokeWidth="2"/>
+                      <path d="M9 9L15 15M15 9L9 15" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )}
+                </div>
+              ),
+            },
+          ]}
+          onClose={() => setViewingEntity(null)}
+        />
       )}
 
-      <div className="properties-table-container">
-        <div className="table-controls">
-          <div className="search-container">
-            <span className="search-icon-emoji">🔍</span>
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Buscar"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <button className="filter-button" aria-label="Filtros">
-            <span className="filter-icon">⋮</span>
-          </button>
-        </div>
-
-        {properties.length === 0 ? (
-          <div className="empty-state">
-            <p>No hay propiedades registradas</p>
-          </div>
-        ) : filteredProperties.length === 0 ? (
-          <div className="empty-state">
-            <p>No se encontraron propiedades que coincidan con la búsqueda</p>
-          </div>
-        ) : (
-          <table className="properties-table">
-            <thead>
-              <tr>
-                <th className="checkbox-column">
-                  <input
-                    type="checkbox"
-                    checked={isAllSelected}
-                    ref={(input) => {
-                      if (input) input.indeterminate = isIndeterminate;
-                    }}
-                    onChange={handleSelectAll}
-                    aria-label="Seleccionar todas las propiedades"
-                  />
-                </th>
-                <th className="sortable">
-                  Nombre
-                  <span className="sort-icon">⬇️</span>
-                </th>
-                <th className="sortable">
-                  Dirección
-                  <span className="sort-icon">⬇️</span>
-                </th>
-                <th>Descripción</th>
-                <th className="actions-column">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredProperties.map((property) => (
-                <tr key={property.id}>
-                  <td className="checkbox-column">
-                    <input
-                      type="checkbox"
-                      checked={selectedProperties.includes(property.id)}
-                      onChange={() => handleSelectProperty(property.id)}
-                      aria-label={`Seleccionar ${property.nombre}`}
-                    />
-                  </td>
-                  <td>{truncateText(property.nombre, 25)}</td>
-                  <td>{truncateText(property.direccion, 25)}</td>
-                  <td>{truncateText(property.descripcion, 35)}</td>
-                  <td className="actions-column">
-                    <div className="action-buttons">
-                      <button
-                        className="btn-action btn-view"
-                        onClick={() => handleView(property)}
-                        aria-label={`Ver ${property.nombre}`}
-                        title="Ver"
-                      >
-                        <span className="action-icon">👁️</span>
-                        <span>Ver</span>
-                      </button>
-                      <button
-                        className="btn-action btn-edit"
-                        onClick={() => handleEdit(property)}
-                        aria-label={`Editar ${property.nombre}`}
-                        title="Editar"
-                      >
-                        <span className="action-icon">✏️</span>
-                        <span>Editar</span>
-                      </button>
-                      <button
-                        className="btn-action btn-delete"
-                        onClick={() => handleDelete(property.id)}
-                        aria-label={`Borrar ${property.nombre}`}
-                        title="Borrar"
-                      >
-                        <span className="action-icon">🗑️</span>
-                        <span>Borrar</span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      <EntityTable
+        entities={properties}
+        filteredEntities={filteredProperties}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        selectedIds={selectedProperties}
+        isAllSelected={isAllSelected}
+        isIndeterminate={isIndeterminate}
+        onSelectAll={handleSelectAll}
+        onSelectEntity={handleSelectEntity}
+        onView={handleView}
+        onEdit={handleEditProperty}
+        onDelete={handleDeleteProperty}
+        getEntityId={getEntityId}
+        getEntityName={getEntityName}
+        truncateText={truncateText}
+        columns={[
+          {
+            key: 'nombre',
+            label: 'Nombre',
+            render: (p) => p.nombre,
+            sortable: true,
+            maxLength: 25,
+          },
+          {
+            key: 'direccion',
+            label: 'Dirección',
+            render: (p) => p.direccion,
+            sortable: true,
+            maxLength: 25,
+          },
+          {
+            key: 'descripcion',
+            label: 'Descripción',
+            render: (p) => p.descripcion,
+            maxLength: 35,
+          },
+          {
+            key: 'rentado',
+            label: 'Rentado',
+            render: (p: Property) => (
+              <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+                {p.rentado ? (
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" fill="#10b981" stroke="#10b981" strokeWidth="2"/>
+                    <path d="M8 12L11 15L16 9" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                ) : (
+                  <svg  width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" fill="#ef4444" stroke="#ef4444" strokeWidth="2"/>
+                    <path d="M9 9L15 15M15 9L9 15" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </div>
+            ),
+          },
+        ]}
+        emptyMessage="No hay propiedades registradas"
+        emptySearchMessage="No se encontraron propiedades que coincidan con la búsqueda"
+        selectAllLabel="Seleccionar todas las propiedades"
+      />
     </div>
   );
 };
