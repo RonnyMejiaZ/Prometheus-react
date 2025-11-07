@@ -62,17 +62,6 @@ export interface Pago {
   pagoGas: boolean;
 }
 
-export interface PerfilData {
-  id: number;
-  nombre: string;
-  email: string;
-  telefono: string;
-  direccion: string;
-  rol: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
 // Tipos para formularios
 export interface PropertyFormData {
   nombre: string;
@@ -107,14 +96,6 @@ export interface PagoFormData {
   fechaPago: string;
   metodoPago: string;
   estado: string;
-}
-
-export interface PerfilFormData {
-  nombre: string;
-  email: string;
-  telefono: string;
-  direccion: string;
-  rol: string;
 }
 
 // Authentication types

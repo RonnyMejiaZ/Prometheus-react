@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
-import { ApiResponse, PagedResult, Property, Inquilino, Alquiler, Pago, PerfilData, LoginRequest, RegisterRequest, AuthResponse } from '../types';
+import { ApiResponse, PagedResult, Property, Inquilino, Alquiler, Pago, LoginRequest, RegisterRequest, AuthResponse } from '../types';
 
 class ApiService {
   private api: AxiosInstance;
@@ -187,38 +187,6 @@ class ApiService {
 
   async deletePago(id: number): Promise<ApiResponse<void>> {
     const response = await this.api.delete(`/pagos/${id}`);
-    return response.data;
-  }
-
-  // Perfil
-  async getPerfil(page = 0, size = 10, search = ''): Promise<ApiResponse<PagedResult<PerfilData>>> {
-    const response = await this.api.get(`/perfil?page=${page}&size=${size}&q=${search}`);
-    return response.data;
-  }
-
-  async getPerfilById(id: number): Promise<ApiResponse<PerfilData>> {
-    const response = await this.api.get(`/perfil/${id}`);
-    return response.data;
-  }
-
-  async createPerfil(perfil: Omit<PerfilData, 'id'>): Promise<ApiResponse<PerfilData>> {
-    const response = await this.api.post('/perfil', perfil);
-    return response.data;
-  }
-
-  async updatePerfil(id: number, perfil: Omit<PerfilData, 'id'>): Promise<ApiResponse<PerfilData>> {
-    const response = await this.api.put(`/perfil/${id}`, perfil);
-    return response.data;
-  }
-
-  async deletePerfil(id: number): Promise<ApiResponse<void>> {
-    const response = await this.api.delete(`/perfil/${id}`);
-    return response.data;
-  }
-
-  // Datos de prueba
-  async createTestData(): Promise<ApiResponse<void>> {
-    const response = await this.api.post('/test-data');
     return response.data;
   }
 

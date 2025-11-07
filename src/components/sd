@@ -149,10 +149,8 @@ const Inquilinos: React.FC = () => {
     return text.substring(0, maxLength) + '...';
   };
 
-    const isAllSelected = filteredInquilinos.length > 0 && selectedInquilinos.length === filteredInquilinos.length;
+  const isAllSelected = filteredInquilinos.length > 0 && selectedInquilinos.length === filteredInquilinos.length;
   const isIndeterminate = selectedInquilinos.length > 0 && selectedInquilinos.length < filteredInquilinos.length;
-
-
 
   if (loading) {
     return (
@@ -233,7 +231,7 @@ const Inquilinos: React.FC = () => {
         </div>
       )}
 
-{viewingInquilino && (
+      {viewingInquilino && (
         <div className="form-modal">
           <div className="form-content view-content">
             <h2>Detalles de la Propiedad</h2>
@@ -376,3 +374,4 @@ const Inquilinos: React.FC = () => {
 };
 
 export default Inquilinos;
+

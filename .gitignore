@@ -21,3 +21,13 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# documentation
+API_CONNECTION_GUIDE.md
+ARCHITECTURE.md
+CODE_COMPLEXITY_ANALYSIS.md
+
+# unused components
+src/components/Perfil.tsx
+src/components/Perfil.css
+src/components/sd
